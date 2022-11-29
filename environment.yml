@@ -1,0 +1,14 @@
+name: proj475
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - jupyter
+  - scipy
+  - scikit-learn
+  - numpy
+  - torchvision
+  - torchaudio
+  - pytorch
+  - pandas
+prefix: /Users/kesavan/opt/miniconda3/envs/proj475
