@@ -34,8 +34,8 @@ parser.add_argument("--plateau-patience", default=3, type=int, help='number of e
 parser.add_argument("--plateau-threshold", default=1e-4, type=float, help='minimum change to count as improvement')
 parser.add_argument("--break-patience", default=5, type=int, help='number of epochs to wait for improvement before stopping training')
 parser.add_argument("--dataset", default='RAF', type=str, help='selects dataset (RAF)')
-parser.add_argument("--train-file", default='train_files.csv', type=str, help='name of txt file to use as training list')
-parser.add_argument("--val-file", default='val_files.csv', type=str, help='name of txt file to use as val list')
+parser.add_argument("--train-file", default='train_files.csv', type=str, help='name of csv file to use as training list')
+parser.add_argument("--val-file", default='val_files.csv', type=str, help='name of csv file to use as val list')
 parser.add_argument("--use-parallel", default='y', type=str, help='***')
 parser.add_argument("--train-transform", default='none', type=str, help='selects transforms to use in training (none/***)')
 parser.add_argument("--num-workers", default=12, type=int, help='number of dataloader workers')
@@ -227,7 +227,7 @@ for epoch in range(model_args['max_epochs']):
     train_ys = []
     train_yhats = []
 
-    for x, y in trainLoader:
+    for x, y, _ in trainLoader:
         if model_args['print_batches']:
             print('\rEpoch {}\t{} batch {}/{}'.format(epoch, 'train', batch_counter, len(trainLoader)))
         batch_counter += 1
@@ -260,7 +260,7 @@ for epoch in range(model_args['max_epochs']):
     val_yhats = []
 
     # For each batch
-    for x, y in valLoader:
+    for x, y, _ in valLoader:
         if model_args['print_batches']:
             print('Epoch {}\t{} batch {}/{}'.format(epoch, 'val', batch_counter, len(valLoader)))
         batch_counter += 1

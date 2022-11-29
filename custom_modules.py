@@ -31,14 +31,26 @@ class RAFDataset(Dataset):
         image = self.transform(image)
         label = self.dataframe.loc[idx, "Emotion"]
         label = one_hot_encode(label, self.n_labels)
-        return image, label
+        filename = self.dataframe.loc[idx, "Name"]
+        return image, label, filename
 
 def get_model(model_args):
     """
-    Load a resnet18 pretrained on imagenet. Unfrozen.
+    Return a resnet18 pretrained on imagenet.
     """
     if model_args['model_type'] == 'ResNet18':
         return ResNet18(model_args)
+    else:
+        raise NotImplementedError()
+
+def load_model(model_path, model_args):
+    """
+    Load a model from provided path.
+    """
+    if model_args['model_type'] == 'ResNet18':
+        model = ResNet18(model_args)
+        model.load_state_dict(T.load(model_path))
+        return model
     else:
         raise NotImplementedError()
 

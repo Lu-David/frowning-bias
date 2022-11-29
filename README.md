@@ -1,6 +1,3 @@
-# frowning-bias
-Frowning upon Bias: Exposing the Impact of Race on Emotion Classification
-
 Links:
 - https://www.ugrad.cs.jhu.edu/~dlu17/README.txt
 - https://www.ugrad.cs.jhu.edu/~dlu17/list_patition_label.txt
