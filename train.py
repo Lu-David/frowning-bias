@@ -41,6 +41,7 @@ parser.add_argument("--train-transform", default='none', type=str, help='selects
 parser.add_argument("--num-workers", default=12, type=int, help='number of dataloader workers')
 parser.add_argument("--dropout", default=0, type=float, help='dropout')
 parser.add_argument("--image-size", default=224, type=int, help='image size to use')
+parser.add_argument("--sample-weights", default='y', type=str, help='sample weights at train time (y/n)')
 parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
 parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
 parser.add_argument("--results-dir", default='./RAF_results', type=str, help='directory to save results')
@@ -62,6 +63,7 @@ data_dir = "./data"
 args.pretrained = args.pretrained == 'y'
 n_labels = 7 # see utils
 args.frozen = args.frozen == 'y'
+args.sample_weights = args.sample_weights == 'y'
 args.use_parallel = args.use_parallel == 'y'
 args.print_batches = args.print_batches == 'y'
 args.scratch_dir = args.scratch_dir.replace('~',os.path.expanduser('~'))
@@ -93,13 +95,14 @@ model_args = {
     'num_workers': args.num_workers,
     'dropout': args.dropout,
     'img_size': args.image_size,
+    'sample_weights': args.sample_weights,
     'print_batches': args.print_batches,
     'scratch_dir':args.scratch_dir,
     'results_dir':args.results_dir,
-    'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_{}.txt'.format(
+    'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_sw{}_{}.txt'.format(
         args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
         args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
-        args.train_file, args.val_file, args.train_transform, args.dropout, int(time.time()))
+        args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, int(time.time()))
 }
 
 # Print fxn
@@ -156,6 +159,15 @@ valLoader = DataLoader(val_data, batch_size=model_args['batch_size'],
 # Loss function
 # multi-class, expects unnormalized logits
 loss_fxn = nn.CrossEntropyLoss()
+if model_args['sample_weights']:
+    # weight each class
+    # using inverse of # of samples in each class based on train dataset
+    train_label_dist = train_data.label_distribution()
+    weight = np.array([1/train_label_dist[x] for x in range(7)])
+    weight = T.from_numpy(weight).to(device)
+    # normalize
+    weight = T.nn.functional.softmax(weight)
+    loss_fxn = nn.CrossEntropyLoss(weight=weight)
 
 # Optimizer
 optimizer = None
@@ -353,6 +365,7 @@ results = {
     'Frozen': model_args['frozen'],
     'Transform': model_args['train_transform'],
     'Dropout': model_args['dropout'],
+    'Sample Weights': model_args['sample_weights'],
     'Epoch': epoch,
     'Loss Train': train_loss,
     'Loss Val': val_loss,

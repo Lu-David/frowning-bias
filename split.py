@@ -57,7 +57,7 @@ df_train = df[df["Split"]=="Train"]
 df_test = df[df["Split"]=="Test"]
 assert len(df) == len(df_train) + len(df_test)
 
-# Validation split
+# Validation split [random seed for reproducibility]
 df_train_sp, df_val_sp = train_test_split(df_train, test_size=0.2, random_state=5)
 
 # Write to file
@@ -68,3 +68,5 @@ df_val_sp.to_csv(os.path.join(str(splits_dir), "val_files.csv"))
 df_test.to_csv(os.path.join(str(splits_dir), "test_files.csv"))
 # original train
 df_train.to_csv(os.path.join(str(splits_dir), "original_train_files.csv"))
+# entire dataset
+df.to_csv(os.path.join(str(splits_dir), "all_files.csv"))

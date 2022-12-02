@@ -22,6 +22,7 @@ import custom_modules as RAF
 parser = argparse.ArgumentParser()
 parser.add_argument("--model-dir", default='./results/scratch', type=str, help='directory where model is stored')
 parser.add_argument("--model-file", type=str, help='name of pt file for model')
+parser.add_argument("--model-name", type=str, help='model name for saving')
 parser.add_argument("--architecture", default='ResNet18', type=str, help='selects architecture (ResNet18/***)')
 parser.add_argument("--pretrained", default='y', type=str, help='use pretrained model (y/n)')
 parser.add_argument("--frozen", default='n', type=str, help='freeze all but task head (y/n)')
@@ -76,8 +77,13 @@ model_args = {
     'print_batches': args.print_batches,
     'scratch_dir':args.scratch_dir,
     'results_dir':args.results_dir,
-    'results_file': '{}_predict{}.npz'.format(model_path.replace("_model.pt", ""), args.test_file)
+    'results_file': os.path.join(args.results_dir, '{}_predict{}.npz'.format(args.model_name, args.test_file))
 }
+
+# Save this to a prediction log
+prediction_log_path = "./results/predictions_log.txt"
+with open(prediction_log_path, "a+") as f:
+    f.write(f"{args.model_name} | {args.model_dir} | {args.model_file} | {model_args['results_file']}")
 
 print(model_args)
 
@@ -141,7 +147,7 @@ test_yhats = []
 test_filenames = []
 
 # For each batch
-for x, y, filename in testLoader:
+for x, y, filename, _ in testLoader:
     if model_args['print_batches']:
         print('Batch {}/{}'.format(batch_counter, len(testLoader)))
     batch_counter += 1
