@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
     parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
     parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
+    parser.add_argument("--results-file", default='', type=str, help='directory to save results')
     parser.add_argument("--use-gpus", default='all', type=str, help='gpu ids (comma separated list eg "0,1" or "all")')
     args = parser.parse_args()
 
@@ -111,7 +112,7 @@ def main():
             args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
             args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
             args.train_file, args.val_file, args.train_transform, args.dropout, args.class_weights, args.equalized_by,
-            args.equalized_how, int(time.time()))
+            args.equalized_how, int(time.time()))[:-4] if args.results_file == '' else args.results_file
     }
 
     # Print fxn
@@ -357,8 +358,8 @@ def main():
                         }
 
             # Save
-            torch.save(model.module.state_dict(), os.path.join(model_args['results_dir'], model_args['results_file'][:-4]+'_model.pt'))
-            torch.save(best_log, os.path.join(model_args['results_dir'], model_args['results_file'][:-4]+'_stats.pt'))
+            torch.save(model.module.state_dict(), os.path.join(model_args['results_dir'], model_args['results_file']+'_model.pt'))
+            torch.save(best_log, os.path.join(model_args['results_dir'], model_args['results_file']+'_stats.pt'))
 
         # Print
         print('Epoch {}\tTrain loss: {:.4f} Val loss: {:.4f} Train AUC: {:.4f} Val AUC: {:.4f} Train acc: {:.4f} Val acc: {:.4f} Time (min): {:.2f} Total time: {:.2f}'.format(
