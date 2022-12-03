@@ -287,7 +287,7 @@ for epoch in range(model_args['max_epochs']):
             loss = loss_fxn(yhat, y)
             
             # normalize yhats before saving
-            yhat = T.nn.functional.softmax(yhat)
+            yhat = torch.nn.functional.softmax(yhat)
 
             val_loss += loss.item() / len(valLoader)
             val_ys.extend(y.to('cpu').numpy().tolist())
