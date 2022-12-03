@@ -105,7 +105,7 @@ def main():
         'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_sw{}_{}.txt'.format(
             args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
             args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
-            args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, int(time.time()))
+            args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, int(time.time()))[:-4]
     }
 
     # Print fxn
@@ -330,8 +330,8 @@ def main():
                         }
 
             # Save
-            torch.save(model.module.state_dict(), os.path.join(model_args['results_dir'], model_args['results_file'][:-4] + '_model.pt'))
-            torch.save(best_log, os.path.join(model_args['results_dir'], model_args['results_file'][:-4] + '_stats.pt'))
+            torch.save(model.module.state_dict(), os.path.join(model_args['results_dir'], model_args['results_file'] + '_model.pt'))
+            torch.save(best_log, os.path.join(model_args['results_dir'], model_args['results_file'] + '_stats.pt'))
 
         # Print
         print('Epoch {}\tTrain loss: {:.4f} Val loss: {:.4f} Train AUC: {:.4f} Val AUC: {:.4f} Train acc: {:.4f} Val acc: {:.4f} Time (min): {:.2f} Total time: {:.2f}'.format(
