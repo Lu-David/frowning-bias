@@ -79,6 +79,36 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
                 for r in range(3):
                     mask = (races == r)
                     probs.append(
+                        np.sum(yhats_col[mask] == k) / np.sum(mask))
+            elif attr == "gender":
+                for g in range(3):
+                    mask = (genders == g)
+                    probs.append(
+                        np.sum(yhats_col[mask] == k) / np.sum(mask))
+            elif attr == "age":
+                for a in range(5):
+                    mask = (ages == a)
+                    probs.append(
+                        np.sum(yhats_col[mask] == k) / np.sum(mask))
+            else: raise NotImplementedError()
+            probs = np.array(probs)
+            U.append(
+                np.max(probs) - np.min(probs)
+            )
+        return np.max(np.array(U))
+    def equal_opp(yhats_col, ys_col, attr):
+        """
+        Denis et al, 2022, arxiv
+        I generalized their defn to apply to |S|>2
+        """
+        U = []
+        for k in range(7):
+            probs = []
+            mask = None
+            if attr == "race":
+                for r in range(3):
+                    mask = (races == r)
+                    probs.append(
                         np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
             elif attr == "gender":
                 for g in range(2):  # only use male/female since there aren't unknown samples for every emotion
@@ -105,6 +135,9 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
     dict["unfairness_race"] = unfairness(yhats_col, ys_col, attr="race")
     dict["unfairness_gender"] = unfairness(yhats_col, ys_col, attr="gender")
     dict["unfairness_age"] = unfairness(yhats_col, ys_col, attr="age")
+    dict["equal_opp_race"] = equal_opp(yhats_col, ys_col, attr="race")
+    dict["equal_opp_gender"] = equal_opp(yhats_col, ys_col, attr="gender")
+    dict["equal_opp_age"] = equal_opp(yhats_col, ys_col, attr="age")
     # within each race
     for r in range(3):
         mask = (races == r)
