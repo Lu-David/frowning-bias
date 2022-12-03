@@ -240,6 +240,7 @@ def main():
     # Model to device
     model = model.to(device)
 
+    gender_weights = torch.FloatTensor([1, 10, 1])
     # Epoch loop
     for epoch in range(model_args['max_epochs']):
         time_start = time.time()
@@ -264,15 +265,9 @@ def main():
             yhat = model(x)
             loss = loss_fxn(yhat, y)
             g = attrs[:, 1]
-            # to one hot
             g = torch.nn.functional.one_hot(g, num_classes=3).float()
-            # matmul times [1, 10, 1]
-            weights = torch.matmul(g, torch.FloatTensor([1, 10, 1]))
-            # normalize
-            weights = torch.nn.functional.softmax(weights)
-            # multiply by loss
+            weights = torch.matmul(g, gender_weights).to(device)
             loss = loss * weights
-            # mean
             loss = loss.mean()
 
             # normalize yhats before saving
@@ -308,6 +303,11 @@ def main():
 
                 yhat = model(x)
                 loss = loss_fxn(yhat, y)
+                g = attrs[:, 1]
+                g = torch.nn.functional.one_hot(g, num_classes=3).float()
+                weights = torch.matmul(g, gender_weights).to(device)
+                loss = loss * weights
+                loss = loss.mean()
 
                 # normalize yhats before saving
                 yhat = torch.nn.functional.softmax(yhat)
