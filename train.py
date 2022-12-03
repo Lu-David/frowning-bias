@@ -4,6 +4,8 @@ Trains CNN model on RAF. Command line parameters.
 
 # Imports
 import os
+from pathlib import Path
+
 import numpy as np
 import time
 import argparse
@@ -113,6 +115,8 @@ def main():
             f.write(to_print)
 
     print(model_args)
+
+    Path(model_args['results_dir']).mkdir(parents=True, exist_ok=True)
 
     """
     Model setup

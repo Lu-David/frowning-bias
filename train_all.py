@@ -6,6 +6,8 @@ Uses original (i.e. all of the available) training data, test data for stopping.
 
 # Imports
 import os
+from pathlib import Path
+
 import numpy as np
 import time
 import argparse
@@ -111,6 +113,8 @@ def printToResults(to_print,file_name):
         f.write(to_print)
 
 print(model_args)
+
+Path(model_args['results_dir']).mkdir(parents=True, exist_ok=True)
 
 """
 Model setup
