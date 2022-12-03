@@ -169,7 +169,7 @@ valLoader = DataLoader(val_data, batch_size=model_args['batch_size'],
 
 # Loss function
 # multi-class, expects unnormalized logits
-loss_fxn = nn.CrossEntropyLoss()
+loss_fxn = nn.CrossEntropyLoss(reduction="none")
 if model_args['sample_weights']:
     # weight each class
     # using inverse of # of samples in each class based on train dataset
@@ -178,7 +178,7 @@ if model_args['sample_weights']:
     weight = torch.from_numpy(weight).to(device)
     # normalize
     weight = torch.nn.functional.softmax(weight)
-    loss_fxn = nn.CrossEntropyLoss(weight=weight)
+    loss_fxn = nn.CrossEntropyLoss(weight=weight, reduction="none")
 
 # Optimizer
 optimizer = None
@@ -213,7 +213,7 @@ elif model_args['scheduler_family'] == 'drop':
     verbose=False
   )
 
-  
+
 """
 Train loop
 """
@@ -262,6 +262,17 @@ for epoch in range(model_args['max_epochs']):
 
         yhat = model(x)
         loss = loss_fxn(yhat, y)
+        g = attrs[:, 1]
+        # to one hot
+        g = torch.nn.functional.one_hot(g, num_classes=3).float()
+        # matmul times [1, 10, 1]
+        weights = torch.matmul(torch.FloatTensor([1, 10, 1]), g)
+        # normalize
+        weights = torch.nn.functional.softmax(weights)
+        # multiply by loss
+        loss = loss * weights
+        # mean
+        loss = loss.mean()
 
         # normalize yhats before saving
         yhat = torch.nn.functional.softmax(yhat)
@@ -296,7 +307,18 @@ for epoch in range(model_args['max_epochs']):
 
             yhat = model(x)
             loss = loss_fxn(yhat, y)
-            
+            g = attrs[:, 1]
+            # to one hot
+            g = torch.nn.functional.one_hot(g, num_classes=3).float()
+            # matmul times [1, 10, 1]
+            weights = torch.matmul(torch.FloatTensor([1, 10, 1]), g)
+            # normalize
+            weights = torch.nn.functional.softmax(weights)
+            # multiply by loss
+            loss = loss * weights
+            # mean
+            loss = loss.mean()
+
             # normalize yhats before saving
             yhat = torch.nn.functional.softmax(yhat)
 
