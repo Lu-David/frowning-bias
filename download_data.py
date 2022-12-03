@@ -9,7 +9,7 @@ aligned_train_url = "https://www.ugrad.cs.jhu.edu/~dlu17/aligned_train.zip"
 list_partition_label_url = "https://www.ugrad.cs.jhu.edu/~dlu17/list_patition_label.txt"
 manual_url = "https://www.ugrad.cs.jhu.edu/~wwang136/manual.zip"
 
-rafdb = Path('../data/RAF')
+rafdb = Path('./data/RAF')
 rafdb.mkdir(exist_ok=True, parents=True)
 
 # download and unzip the data using python
