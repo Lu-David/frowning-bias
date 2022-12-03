@@ -44,7 +44,7 @@ def main():
     parser.add_argument("--num-workers", default=12, type=int, help='number of dataloader workers')
     parser.add_argument("--dropout", default=0, type=float, help='dropout')
     parser.add_argument("--image-size", default=224, type=int, help='image size to use')
-    parser.add_argument("--sample-weights", default='y', type=str, help='sample weights at train time (y/n)')
+    parser.add_argument("--class-weights", default='y', type=str, help='class weights for loss function at train time (y/n)')
     parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
     parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
     parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
@@ -66,7 +66,7 @@ def main():
     args.pretrained = args.pretrained == 'y'
     n_labels = 7  # see utils
     args.frozen = args.frozen == 'y'
-    args.sample_weights = args.sample_weights == 'y'
+    args.class_weights = args.class_weights == 'y'
     args.use_parallel = args.use_parallel == 'y'
     args.print_batches = args.print_batches == 'y'
     args.scratch_dir = args.scratch_dir.replace('~', os.path.expanduser('~'))
@@ -98,14 +98,14 @@ def main():
         'num_workers': args.num_workers,
         'dropout': args.dropout,
         'img_size': args.image_size,
-        'sample_weights': args.sample_weights,
+        'class_weights': args.class_weights,
         'print_batches': args.print_batches,
         'scratch_dir': args.scratch_dir,
         'results_dir': args.results_dir,
-        'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_sw{}_{}.txt'.format(
+        'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_cw{}_{}.txt'.format(
             args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
             args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
-            args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, int(time.time()))[:-4]
+            args.train_file, args.val_file, args.train_transform, args.dropout, args.class_weights, int(time.time()))[:-4]
     }
 
     # Print fxn
@@ -164,7 +164,7 @@ def main():
     # Loss function
     # multi-class, expects unnormalized logits
     loss_fxn = nn.CrossEntropyLoss()
-    if model_args['sample_weights']:
+    if model_args['class_weights']:
         # weight each class
         # using inverse of # of samples in each class based on train dataset
         train_label_dist = train_data.label_distribution()
@@ -382,7 +382,7 @@ def main():
         'Frozen': model_args['frozen'],
         'Transform': model_args['train_transform'],
         'Dropout': model_args['dropout'],
-        'Sample Weights': model_args['sample_weights'],
+        'Class Weights': model_args['class_weights'],
         'Epoch': epoch,
         'Loss Train': train_loss,
         'Loss Val': val_loss,

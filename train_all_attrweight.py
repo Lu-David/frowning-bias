@@ -51,7 +51,6 @@ def main():
     parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
     parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
     parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
-    parser.add_argument("--results-file", default='', type=str, help='directory to save results')
     parser.add_argument("--use-gpus", default='all', type=str, help='gpu ids (comma separated list eg "0,1" or "all")')
     args = parser.parse_args()
 
@@ -112,7 +111,7 @@ def main():
             args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
             args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
             args.train_file, args.val_file, args.train_transform, args.dropout, args.class_weights, args.equalized_by,
-            args.equalized_how, int(time.time()))[:-4] if args.results_file == '' else args.results_file
+            args.equalized_how, int(time.time()))
     }
 
     # Print fxn
@@ -172,7 +171,8 @@ def main():
 
     # Loss function
     # multi-class, expects unnormalized logits
-    loss_fxn = nn.CrossEntropyLoss()
+    # no reduction, since we want to weight each sample
+    loss_fxn = nn.CrossEntropyLoss(reduce=False)
     if model_args['class_weights']:
         # weight each class
         # using inverse of # of samples in each class based on train dataset
@@ -181,7 +181,17 @@ def main():
         weight = torch.from_numpy(weight).to(device)
         # normalize
         weight = torch.nn.functional.softmax(weight)
-        loss_fxn = nn.CrossEntropyLoss(weight=weight)
+        loss_fxn = nn.CrossEntropyLoss(weight=weight, reduce=False)
+    
+    # weighting scheme
+    def attr_weights(attrs, device):
+        n = attrs.size()[0]
+        w = torch.ones(n, device=device, dtype=torch.float64)
+        # for now, just weight men 10x
+        for i in range(n):
+            if attrs[i,1] == 0:
+                w[i] = 10
+        return w
 
     # Optimizer
     optimizer = None
@@ -266,6 +276,9 @@ def main():
             yhat = model(x)
             loss = loss_fxn(yhat, y)
 
+            # attribute weighting & reduction
+            attr_weight = attr_weights(attrs, device)
+            loss = torch.dot(loss, attr_weight)
 
             # normalize yhats before saving
             yhat = torch.nn.functional.softmax(yhat)
@@ -301,6 +314,8 @@ def main():
                 yhat = model(x)
                 loss = loss_fxn(yhat, y)
 
+                # sun reduction
+                loss = torch.sum(loss)
 
                 # normalize yhats before saving
                 yhat = torch.nn.functional.softmax(yhat)
@@ -342,8 +357,8 @@ def main():
                         }
 
             # Save
-            torch.save(model.module.state_dict(), os.path.join(model_args['results_dir'], model_args['results_file']+'_model.pt'))
-            torch.save(best_log, os.path.join(model_args['results_dir'], model_args['results_file']+'_stats.pt'))
+            torch.save(model.module.state_dict(), os.path.join(model_args['results_dir'], model_args['results_file'][:-4]+'_model.pt'))
+            torch.save(best_log, os.path.join(model_args['results_dir'], model_args['results_file'][:-4]+'_stats.pt'))
 
         # Print
         print('Epoch {}\tTrain loss: {:.4f} Val loss: {:.4f} Train AUC: {:.4f} Val AUC: {:.4f} Train acc: {:.4f} Val acc: {:.4f} Time (min): {:.2f} Total time: {:.2f}'.format(
