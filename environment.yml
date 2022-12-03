@@ -8,7 +8,9 @@ dependencies:
   - scikit-learn
   - numpy
   - torchvision
-  - torchaudio
+#  - torchaudio
   - pytorch
   - pandas
+  - seaborn
+  - matplotlib
 prefix: /Users/kesavan/opt/miniconda3/envs/proj475

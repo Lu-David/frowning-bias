@@ -1,3 +1,6 @@
+Setup:
+mamba env create -f environment.yml
+
 Links:
 - https://www.ugrad.cs.jhu.edu/~dlu17/README.txt
 - https://www.ugrad.cs.jhu.edu/~dlu17/list_patition_label.txt
