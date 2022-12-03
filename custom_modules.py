@@ -25,21 +25,31 @@ class RAFDataset(Dataset):
 
         # equalize the dataset by provided attribute
         if equalized_by != "none":
-            if equalized_by not in ["Race", "Gender", "Age"]:
+            if equalized_by not in ["Race", "Gender", "Age", "Emotion", "Combo"]:
                 raise NotImplementedError()
+
+            equalized_by_list = ["Gender", "Race", "Emotion"] if equalized_by == "Combo" else [equalized_by]
+
+            self.dataframe['equalized'] = self.dataframe[equalized_by_list].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
+            
             # get counts for the distribution of the attribute
-            unique, counts = np.unique(self.dataframe[equalized_by],  return_counts=True)
+            unique, counts = np.unique(self.dataframe['equalized'],  return_counts=True)
             # how to equalize the counts
             eq_count = None
             if equalized_how == "up":
                 eq_count = np.max(counts)
             elif equalized_how == "down":
                 eq_count = np.min(counts)
+            elif equalized_how == "mean":
+                eq_count = int(np.mean(counts))
             else: raise NotImplementedError()
+
+            print(f"Equalizing by {equalized_by_list} how {equalized_how} with {eq_count} counts with {unique} unique")
             # resample each 'class' of the attribute
             sampled_dataframes = []
             for u in unique:
-                sampled_dataframe = self.dataframe[self.dataframe[equalized_by] == u].sample(n=eq_count, replace=True, random_state=5)
+                subset = self.dataframe[self.dataframe['equalized'] == u]
+                sampled_dataframe = subset.sample(n=eq_count, replace=len(subset) < eq_count, random_state=42)
                 sampled_dataframes.append(sampled_dataframe)
             # make a new dataframe
             new_dataframe = pd.concat(sampled_dataframes)
