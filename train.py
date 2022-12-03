@@ -240,7 +240,7 @@ def main():
         train_ys = []
         train_yhats = []
 
-        for x, y, _ in trainLoader:
+        for x, y, filename, attrs in trainLoader:
             if model_args['print_batches']:
                 print('\rEpoch {}\t{} batch {}/{}'.format(epoch, 'train', batch_counter, len(trainLoader)))
             batch_counter += 1
@@ -273,7 +273,7 @@ def main():
         val_yhats = []
 
         # For each batch
-        for x, y, _ in valLoader:
+        for x, y, filename, attrs in valLoader:
             if model_args['print_batches']:
                 print('Epoch {}\t{} batch {}/{}'.format(epoch, 'val', batch_counter, len(valLoader)))
             batch_counter += 1
