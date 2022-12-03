@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import roc_auc_score
 import custom_modules as RAF
 
+
 def main():
     # Parse args
     parser = argparse.ArgumentParser()
