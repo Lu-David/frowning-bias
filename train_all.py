@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
     parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
     parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
+    parser.add_argument("--results-file", default='', type=str, help='directory to save results')
     parser.add_argument("--use-gpus", default='all', type=str, help='gpu ids (comma separated list eg "0,1" or "all")')
     args = parser.parse_args()
 
@@ -111,7 +112,7 @@ def main():
             args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
             args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
             args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, args.equalized_by,
-            args.equalized_how, int(time.time()))
+            args.equalized_how, int(time.time())) if args.results_file == '' else args.results_file
     }
 
     # Print fxn
