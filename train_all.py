@@ -242,7 +242,7 @@ def main():
     # Model to device
     model = model.to(device)
 
-    gender_weights = torch.FloatTensor([10, 1, 1])
+    gender_weights = torch.FloatTensor([1, 1, 1])
     # Epoch loop
     for epoch in range(model_args['max_epochs']):
         time_start = time.time()
