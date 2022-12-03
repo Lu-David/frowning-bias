@@ -66,7 +66,7 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
         return f1_score(ys_col, yhats_col, labels=list(range(7)), average=average)
     def auc(yhats_arr, ys_arr, multi_class="ovr"):
         return roc_auc_score(ys_arr, yhats_arr, multi_class=multi_class)
-    def unfairness(yhats_col, ys_col, attr):
+    def stat_parity(yhats_col, ys_col, attr):
         """
         Denis et al, 2022, arxiv
         I generalized their defn to apply to |S|>2
@@ -81,12 +81,12 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
                     probs.append(
                         np.sum(yhats_col[mask] == k) / np.sum(mask))
             elif attr == "gender":
-                for g in range(3):
+                for g in range(2):
                     mask = (genders == g)
                     probs.append(
                         np.sum(yhats_col[mask] == k) / np.sum(mask))
             elif attr == "age":
-                for a in range(5):
+                for a in range(1, 5):
                     mask = (ages == a)
                     probs.append(
                         np.sum(yhats_col[mask] == k) / np.sum(mask))
@@ -116,7 +116,7 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
                     probs.append(
                         np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
             elif attr == "age":
-                for a in range(1, 5): # only use middle three age groups since there aren't unknown samples for every emotion
+                for a in range(1, 5): # only use middle three age groups since there aren't other samples for every emotion
                     mask = (ages == a)
                     probs.append(
                         np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
@@ -132,9 +132,9 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
     dict["acc"] = acc(yhats_col, ys_col)
     dict["f1"] = f1(yhats_col, ys_col)
     dict["auc"] = auc(yhats_arr, ys_arr)
-    dict["unfairness_race"] = unfairness(yhats_col, ys_col, attr="race")
-    dict["unfairness_gender"] = unfairness(yhats_col, ys_col, attr="gender")
-    dict["unfairness_age"] = unfairness(yhats_col, ys_col, attr="age")
+    dict["stat_parity_race"] = stat_parity(yhats_col, ys_col, attr="race")
+    dict["stat_parity_gender"] = stat_parity(yhats_col, ys_col, attr="gender")
+    dict["stat_parity_age"] = stat_parity(yhats_col, ys_col, attr="age")
     dict["equal_opp_race"] = equal_opp(yhats_col, ys_col, attr="race")
     dict["equal_opp_gender"] = equal_opp(yhats_col, ys_col, attr="gender")
     dict["equal_opp_age"] = equal_opp(yhats_col, ys_col, attr="age")
