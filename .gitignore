@@ -4,6 +4,8 @@ data/RAF/aligned_test
 data/RAF/aligned_train
 data/RAF/manual
 data/RAF/original/
+data/RAF/**/*.zip
+data/RAF/splits
 download/
 .ipynb_checkpoints/
 results/
