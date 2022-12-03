@@ -30,7 +30,7 @@ def remove_parent_dir(target):
     extracted_folder.rename("tmp")
     # move out of parent folder
     for f in Path("tmp").iterdir():
-        shutil.move(f, target.parent)
+        shutil.move(str(f), str(target.parent))
     # remove tmp folder
     shutil.rmtree("tmp")
 
