@@ -86,7 +86,7 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
                     probs.append(
                         np.sum(yhats_col[mask] == k) / np.sum(mask))
             elif attr == "age":
-                for a in range(1, 5):
+                for a in range(1, 4):
                     mask = (ages == a)
                     probs.append(
                         np.sum(yhats_col[mask] == k) / np.sum(mask))
@@ -116,7 +116,7 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
                     probs.append(
                         np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
             elif attr == "age":
-                for a in range(1, 5): # only use middle three age groups since there aren't other samples for every emotion
+                for a in range(1, 4): # only use middle three age groups since there aren't other samples for every emotion
                     mask = (ages == a)
                     probs.append(
                         np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
