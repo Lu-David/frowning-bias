@@ -164,9 +164,9 @@ if model_args['sample_weights']:
     # using inverse of # of samples in each class based on train dataset
     train_label_dist = train_data.label_distribution()
     weight = np.array([1/train_label_dist[x] for x in range(7)])
-    weight = T.from_numpy(weight).to(device)
+    weight = torch.from_numpy(weight).to(device)
     # normalize
-    weight = T.nn.functional.softmax(weight)
+    weight = torch.nn.functional.softmax(weight)
     loss_fxn = nn.CrossEntropyLoss(weight=weight)
 
 # Optimizer
@@ -253,7 +253,7 @@ for epoch in range(model_args['max_epochs']):
         loss = loss_fxn(yhat, y)
 
         # normalize yhats before saving
-        yhat = T.nn.functional.softmax(yhat)
+        yhat = torch.nn.functional.softmax(yhat)
 
         optimizer.zero_grad()
         loss.backward()
@@ -287,7 +287,7 @@ for epoch in range(model_args['max_epochs']):
             loss = loss_fxn(yhat, y)
             
             # normalize yhats before saving
-            yhat = T.nn.functional.softmax(yhat)
+            yhat = torch.nn.functional.softmax(yhat)
 
             val_loss += loss.item() / len(valLoader)
             val_ys.extend(y.to('cpu').numpy().tolist())

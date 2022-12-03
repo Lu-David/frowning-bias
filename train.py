@@ -46,7 +46,7 @@ def main():
     parser.add_argument("--sample-weights", default='y', type=str, help='sample weights at train time (y/n)')
     parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
     parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
-    parser.add_argument("--results-dir", default='./RAF_results', type=str, help='directory to save results')
+    parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
     parser.add_argument("--use-gpus", default='all', type=str, help='gpu ids (comma separated list eg "0,1" or "all")')
     args = parser.parse_args()
 
@@ -300,7 +300,7 @@ def main():
         train_log['loss']['train'].append(train_loss)
         train_log['loss']['val'].append(val_loss)
         train_log['acc']['train'].append(
-        np.sum(np.argmax(train_yhats, axis=1) == np.argmax(train_ys, axis=1)) / np.shape(train_ys)[0]
+            np.sum(np.argmax(train_yhats, axis=1) == np.argmax(train_ys, axis=1)) / np.shape(train_ys)[0]
         )
         train_log['acc']['val'].append(
             np.sum(np.argmax(val_yhats, axis=1) == np.argmax(val_ys, axis=1)) / np.shape(val_ys)[0]
@@ -320,6 +320,7 @@ def main():
             best_log = {'epoch': epoch,
                         'loss': {'train': train_loss, 'val': val_loss},
                         'auc': {'train': train_log['auc']['train'][-1], 'val': train_log['auc']['val'][-1]},
+                        'acc': {'train': train_log['acc']['train'][-1], 'val': train_log['acc']['val'][-1]},
                         'points': {'train': {'y': train_ys, 'yhat': train_yhats},
                                    'val': {'y': val_ys, 'yhat': val_yhats}},
                         'timer': sum(train_log['timer'])
