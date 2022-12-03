@@ -13,7 +13,7 @@ def download_and_unzip(url, dest):
     urllib.request.urlretrieve(url, dest)
     print(f"Unzipping {dest}")
     with zipfile.ZipFile(dest, 'r') as zip_ref:
-        zip_ref.extractall(rafdb)
+        zip_ref.extractall(dest.parent)
 
 def remove_parent_dir(target):
     # rename extracted folder
