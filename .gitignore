@@ -1,11 +1,11 @@
 *.DS_Store
 __pycache__/
-data/RAF/aligned_test
-data/RAF/aligned_train
-data/RAF/manual
-data/RAF/original/
-data/RAF/**/*.zip
-data/RAF/splits
+#data/RAF/aligned_test
+#data/RAF/aligned_train
+#data/RAF/manual
+#data/RAF/original/
+#data/RAF/**/*.zip
+data/RAF
 download/
 .ipynb_checkpoints/
 results/
