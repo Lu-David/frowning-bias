@@ -1,5 +1,6 @@
 """
 Trains CNN model on RAF. Command line parameters.
+Uses original (i.e. all of the available) training data, test data for stopping.
 """
 
 
@@ -9,7 +10,6 @@ import numpy as np
 import time
 import argparse
 import warnings
-import torch as T
 warnings.filterwarnings("ignore", category=UserWarning)
 import torch
 import torch.nn as nn
@@ -123,16 +123,16 @@ for m in model.modules():
     if isinstance(m, nn.Dropout):
         m.p = model_args['dropout']
 
-# Datasets
+# Datasets (original train/test)
 dataset_root = os.path.join(model_args['data_dir'], model_args['dataset'])
 train_data = RAF.RAFDataset(
-    csv_file=os.path.join(dataset_root, "splits/train_files.csv"),
+    csv_file=os.path.join(dataset_root, "splits/original_train_files.csv"),
     n_labels=model_args['n_labels'],
     img_size=model_args["img_size"],
     transform=None,
 )
 val_data = RAF.RAFDataset(
-    csv_file=os.path.join(dataset_root, "splits/val_files.csv"),
+    csv_file=os.path.join(dataset_root, "splits/test_files.csv"),
     n_labels=model_args['n_labels'],
     img_size=model_args["img_size"],
     transform=None,

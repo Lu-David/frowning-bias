@@ -82,7 +82,7 @@ model_args = {
 
 # Save this to a prediction log
 prediction_log_path = "./results/predictions_log.txt"
-with open(prediction_log_path, "a+") as f:
+with open(prediction_log_path, "a") as f:
     f.write(f"{args.model_name} | {args.model_dir} | {args.model_file} | {model_args['results_file']}")
 
 print(model_args)
