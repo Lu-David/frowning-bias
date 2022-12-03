@@ -42,6 +42,8 @@ parser.add_argument("--num-workers", default=12, type=int, help='number of datal
 parser.add_argument("--dropout", default=0, type=float, help='dropout')
 parser.add_argument("--image-size", default=224, type=int, help='image size to use')
 parser.add_argument("--sample-weights", default='y', type=str, help='sample weights at train time (y/n)')
+parser.add_argument("--equalized-by", default='none', type=str, help='equalize training set by a protected attr (Race/Gender/Age/none)')
+parser.add_argument("--equalized-how", default='none', type=str, help='equalize training set by sampling attr (up/down/none)')
 parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
 parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
 parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
@@ -96,13 +98,16 @@ model_args = {
     'dropout': args.dropout,
     'img_size': args.image_size,
     'sample_weights': args.sample_weights,
+    'equalized_by': args.equalized_by,
+    'equalized_how': args.equalized_how,
     'print_batches': args.print_batches,
     'scratch_dir':args.scratch_dir,
     'results_dir':args.results_dir,
-    'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_sw{}_{}.txt'.format(
+    'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_sw{}_eq{}_eqhow{}_{}.txt'.format(
         args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
         args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
-        args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, int(time.time()))
+        args.train_file, args.val_file, args.train_transform, args.dropout, args.sample_weights, args.equalized_by,
+        args.equalized_how, int(time.time()))
 }
 
 # Print fxn
@@ -130,6 +135,8 @@ train_data = RAF.RAFDataset(
     n_labels=model_args['n_labels'],
     img_size=model_args["img_size"],
     transform=None,
+    equalized_by=model_args['equalized_by'],
+    equalized_how=model_args['equalized_how']
 )
 val_data = RAF.RAFDataset(
     csv_file=os.path.join(dataset_root, "splits/test_files.csv"),
@@ -379,6 +386,8 @@ results = {
     'Transform': model_args['train_transform'],
     'Dropout': model_args['dropout'],
     'Sample Weights': model_args['sample_weights'],
+    'Equalized By': model_args['equalized_by'],
+    'Equalized How': model_args['equalized_how'],
     'Epoch': epoch,
     'Loss Train': train_loss,
     'Loss Val': val_loss,

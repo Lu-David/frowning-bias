@@ -94,7 +94,7 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
             probs = np.array(probs)
             U.append(
                 np.max(probs) - np.min(probs)
-            )  
+            )
         return np.max(np.array(U))
 
     """Iterate over attribute combinations"""
@@ -137,6 +137,9 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
         for g in range(3):
             for a in range(5):
                 mask = ((races == r) & (genders == g) & (ages == a))
+                if np.sum(mask) == 0:
+                    dict[f"acc_race{r}_gender{g}_age{a}"] = np.nan
+                    continue
                 dict[f"acc_race{r}_gender{g}_age{a}"] = acc(yhats_col[mask], ys_col[mask])
 
     """Return dictionary"""

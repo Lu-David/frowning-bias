@@ -13,7 +13,7 @@ from utils import one_hot_encode
 
 
 class RAFDataset(Dataset):
-    def __init__(self, csv_file, n_labels, img_size=224, transform=None):
+    def __init__(self, csv_file, n_labels, img_size=224, transform=None, equalized_by="none", equalized_how="none"):
         self.dataframe = pd.read_csv(csv_file)
         self.n_labels = n_labels
         self.img_size = img_size
@@ -22,10 +22,44 @@ class RAFDataset(Dataset):
         self.transform = torchvision.transforms.Compose([
             transform, Resize(self.img_size), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
+
+        # equalize the dataset by provided attribute
+        if equalized_by != "none":
+            if equalized_by not in ["Race", "Gender", "Age"]:
+                raise NotImplementedError()
+            # get counts for the distribution of the attribute
+            unique, counts = np.unique(self.dataframe[equalized_by],  return_counts=True)
+            # how to equalize the counts
+            eq_count = None
+            if equalized_how == "up":
+                eq_count = np.max(counts)
+            elif equalized_how == "down":
+                eq_count = np.min(counts)
+            else: raise NotImplementedError()
+            # resample each 'class' of the attribute
+            sampled_dataframes = []
+            for u in unique:
+                sampled_dataframe = self.dataframe[self.dataframe[equalized_by] == u].sample(n=eq_count, replace=True, random_state=5)
+                sampled_dataframes.append(sampled_dataframe)
+            # make a new dataframe
+            new_dataframe = pd.concat(sampled_dataframes)
+            self.dataframe = new_dataframe
+            self.dataframe.reset_index(inplace=True)
+
         # compute label distribution
         labels = np.array(self.dataframe["Emotion"])
         self.label_dist = {i: np.sum(labels==i) for i in range(n_labels)}
         
+        # compute attribute distribution
+        races = np.array(self.dataframe["Race"])
+        genders = np.array(self.dataframe["Gender"])
+        ages = np.array(self.dataframe["Age"])
+        self.attr_counts = np.zeros((3,3,5))
+        for r in range(3):
+            for g in range(3):
+                for a in range(5):
+                    self.attr_counts[r,g,a] = np.sum(((races == r) & (genders == g) & (ages == a)))
+
     def __len__(self):
         return len(self.dataframe)
     
@@ -41,6 +75,9 @@ class RAFDataset(Dataset):
     
     def label_distribution(self):
         return self.label_dist
+    
+    def attr_distribution(self):
+        return self.attr_counts
 
 def get_lookup_table(csv_file):
     """
