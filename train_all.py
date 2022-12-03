@@ -172,7 +172,7 @@ def main():
 
     # Loss function
     # multi-class, expects unnormalized logits
-    loss_fxn = nn.CrossEntropyLoss(reduction="none")
+    loss_fxn = nn.CrossEntropyLoss()
     if model_args['sample_weights']:
         # weight each class
         # using inverse of # of samples in each class based on train dataset
@@ -181,7 +181,7 @@ def main():
         weight = torch.from_numpy(weight).to(device)
         # normalize
         weight = torch.nn.functional.softmax(weight)
-        loss_fxn = nn.CrossEntropyLoss(weight=weight, reduction="none")
+        loss_fxn = nn.CrossEntropyLoss(weight=weight)
 
     # Optimizer
     optimizer = None
@@ -265,17 +265,7 @@ def main():
 
             yhat = model(x)
             loss = loss_fxn(yhat, y)
-            g = attrs[:, 1]
-            # to one hot
-            g = torch.nn.functional.one_hot(g, num_classes=3).float()
-            # matmul times [1, 10, 1]
-            weights = torch.matmul(torch.FloatTensor([1, 10, 1]), g)
-            # normalize
-            weights = torch.nn.functional.softmax(weights)
-            # multiply by loss
-            loss = loss * weights
-            # mean
-            loss = loss.mean()
+
 
             # normalize yhats before saving
             yhat = torch.nn.functional.softmax(yhat)
@@ -310,17 +300,7 @@ def main():
 
                 yhat = model(x)
                 loss = loss_fxn(yhat, y)
-                g = attrs[:, 1]
-                # to one hot
-                g = torch.nn.functional.one_hot(g, num_classes=3).float()
-                # matmul times [1, 10, 1]
-                weights = torch.matmul(torch.FloatTensor([1, 10, 1]), g)
-                # normalize
-                weights = torch.nn.functional.softmax(weights)
-                # multiply by loss
-                loss = loss * weights
-                # mean
-                loss = loss.mean()
+
 
                 # normalize yhats before saving
                 yhat = torch.nn.functional.softmax(yhat)
