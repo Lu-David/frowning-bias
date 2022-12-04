@@ -187,11 +187,11 @@ def main():
     # weighting scheme
     def attr_weights(attrs, device):
         n = attrs.size()[0]
-        w = torch.ones(n, device=device, dtype=torch.float64)
+        w = torch.ones(n, device=device, dtype=torch.float64) * 0.05
         # for now, just weight men 10x
         for i in range(n):
             if attrs[i,1] == 0:
-                w[i] = 10
+                w[i] = 4
         return w
 
     # Optimizer
@@ -279,7 +279,7 @@ def main():
 
             # attribute weighting & reduction
             attr_weight = attr_weights(attrs, device)
-            loss = torch.dot(loss, attr_weight)
+            loss = torch.dot(loss, attr_weight) / len(loss)
 
             # normalize yhats before saving
             yhat = torch.nn.functional.softmax(yhat)
@@ -315,8 +315,7 @@ def main():
                 yhat = model(x)
                 loss = loss_fxn(yhat, y)
 
-                # sun reduction
-                loss = torch.sum(loss)
+                loss = torch.mean(loss)
 
                 # normalize yhats before saving
                 yhat = torch.nn.functional.softmax(yhat)
