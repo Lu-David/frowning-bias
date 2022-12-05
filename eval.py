@@ -103,15 +103,17 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
             "gender": [genders, range(2)],
             "age": [ages, range(1, 4)]
         }
-        options, arange = attrs[attr]
-        d = max([(acc(yhats_col[options == i], ys_col[options == i]), i) for i in arange], key=lambda x: x[0])[1]
-        d_sum = sum([np.sum(np.logical_and(yhats_col[options == d] == k, ys_col[options == d] == k)) / np.sum(ys_col[options == d] == k) for k in range(7)])
+        y_attrs, arange = attrs[attr]
+        # d = max([(acc(yhats_col[y_attrs == i], ys_col[y_attrs == i]), i) for i in arange], key=lambda x: x[0])[1]
+        # d_sum = sum([np.sum(np.logical_and(yhats_col[y_attrs == d] == k, ys_col[y_attrs == d] == k)) / np.sum(ys_col[y_attrs == d] == k) for k in range(7)])
         f_list = []
         for g in arange:
-            s_sum = sum([np.sum(np.logical_and(yhats_col[options == g] == k, ys_col[options == g] == k)) / np.sum(ys_col[options == g] == k) for k in range(7)])
-            f_list.append(s_sum / d_sum)
-        return min(f_list)
+            s_sum = sum([np.sum(np.logical_and(yhats_col[y_attrs == g] == k, ys_col[y_attrs == g] == k)) / np.sum(ys_col[y_attrs == g] == k) for k in range(7)])
+            f_list.append(s_sum)
+        return np.min(f_list / np.max(f_list))
 
+
+    # def equal_opp_2(yhats_col, ys_col, attr)
 
         # """
         # Denis et al, 2022, arxiv
