@@ -190,7 +190,7 @@ def main():
         w = torch.ones(n, device=device, dtype=torch.float64) * 0.05
         # for now, just weight men 10x
         for i in range(n):
-            if attrs[i,1] == 0:
+            if attrs[i,0] == 2:
                 w[i] = 4
         return w
 
