@@ -96,36 +96,52 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
                 np.max(probs) - np.min(probs)
             )
         return np.max(np.array(U))
+
     def equal_opp(yhats_col, ys_col, attr):
-        """
-        Denis et al, 2022, arxiv
-        I generalized their defn to apply to |S|>2
-        """
-        U = []
-        for k in range(7):
-            probs = []
-            mask = None
-            if attr == "race":
-                for r in range(3):
-                    mask = (races == r)
-                    probs.append(
-                        np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
-            elif attr == "gender":
-                for g in range(2):  # only use male/female since there aren't unknown samples for every emotion
-                    mask = (genders == g)
-                    probs.append(
-                        np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
-            elif attr == "age":
-                for a in range(1, 4): # only use middle three age groups since there aren't other samples for every emotion
-                    mask = (ages == a)
-                    probs.append(
-                        np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
-            else: raise NotImplementedError()
-            probs = np.array(probs)
-            U.append(
-                np.max(probs) - np.min(probs)
-            )
-        return np.max(np.array(U))
+        attrs = {
+            "race": [races, range(3)],
+            "gender": [genders, range(2)],
+            "age": [ages, range(1, 4)]
+        }
+        options, arange = attrs[attr]
+        d = max([(acc(yhats_col[options == i], ys_col[options == i]), i) for i in arange], key=lambda x: x[0])[1]
+        d_sum = sum([np.sum(np.logical_and(yhats_col[options == d] == k, ys_col[options == d] == k)) / np.sum(ys_col[options == d] == k) for k in range(7)])
+        f_list = []
+        for g in arange:
+            s_sum = sum([np.sum(np.logical_and(yhats_col[options == g] == k, ys_col[options == g] == k)) / np.sum(ys_col[options == g] == k) for k in range(7)])
+            f_list.append(s_sum / d_sum)
+        return min(f_list)
+
+
+        # """
+        # Denis et al, 2022, arxiv
+        # I generalized their defn to apply to |S|>2
+        # """
+        # U = []
+        # for k in range(7):
+        #     probs = []
+        #     mask = None
+        #     if attr == "race":
+        #         for r in range(3):
+        #             mask = (races == r)
+        #             probs.append(
+        #                 np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
+        #     elif attr == "gender":
+        #         for g in range(2):  # only use male/female since there aren't unknown samples for every emotion
+        #             mask = (genders == g)
+        #             probs.append(
+        #                 np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
+        #     elif attr == "age":
+        #         for a in range(1, 4): # only use middle three age groups since there aren't other samples for every emotion
+        #             mask = (ages == a)
+        #             probs.append(
+        #                 np.sum(np.logical_and(yhats_col[mask] == k, ys_col[mask] == k)) / np.sum(ys_col[mask] == k))
+        #     else: raise NotImplementedError()
+        #     probs = np.array(probs)
+        #     U.append(
+        #         np.max(probs) - np.min(probs)
+        #     )
+        # return np.max(np.array(U))
 
     def refactor_this(yhats_col, ys_col, attr): # TODO: make this generalized
         U = []
