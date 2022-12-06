@@ -8,10 +8,86 @@ from PIL import Image
 import torch as T
 import torchvision
 from torch.utils.data import Dataset
-from torchvision.transforms import ToTensor, Resize, Normalize
+from torchvision.transforms import ToTensor, Resize, Normalize, RandomInvert
 from utils import one_hot_encode
 
+class RAFDatasetAugmented(Dataset):
+    def __init__(self, csv_file, n_labels, img_size=224, transform=None, equalized_by="none", equalized_how="none"):
+        self.dataframe = pd.read_csv(csv_file)
+        self.n_labels = n_labels
+        self.img_size = img_size
+        if transform is None:
+            transform = ToTensor()
+        self.transform = torchvision.transforms.Compose([
+            transform, Resize(self.img_size), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)), RandomInvert(p = 0.5)
+        ])
 
+        # equalize the dataset by provided attribute
+        if equalized_by != "none":
+            if equalized_by not in ["Race", "Gender", "Age", "Emotion", "Combo"]:
+                raise NotImplementedError()
+
+            equalized_by_list = ["Gender", "Race", "Emotion"] if equalized_by == "Combo" else [equalized_by]
+
+            self.dataframe['equalized'] = self.dataframe[equalized_by_list].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
+            
+            # get counts for the distribution of the attribute
+            unique, counts = np.unique(self.dataframe['equalized'],  return_counts=True)
+            # how to equalize the counts
+            eq_count = None
+            if equalized_how == "up":
+                eq_count = np.max(counts)
+            elif equalized_how == "down":
+                eq_count = np.min(counts)
+            elif equalized_how == "mean":
+                eq_count = int(np.mean(counts))
+            else: raise NotImplementedError()
+
+            print(f"Equalizing by {equalized_by_list} how {equalized_how} with {eq_count} counts with {unique} unique")
+            # resample each 'class' of the attribute
+            sampled_dataframes = []
+            for u in unique:
+                subset = self.dataframe[self.dataframe['equalized'] == u]
+                sampled_dataframe = subset.sample(n=eq_count, replace=len(subset) < eq_count, random_state=42)
+                sampled_dataframes.append(sampled_dataframe)
+            # make a new dataframe
+            new_dataframe = pd.concat(sampled_dataframes)
+            self.dataframe = new_dataframe
+            self.dataframe.reset_index(inplace=True)
+
+        # compute label distribution
+        labels = np.array(self.dataframe["Emotion"])
+        self.label_dist = {i: np.sum(labels==i) for i in range(n_labels)}
+        
+        # compute attribute distribution
+        races = np.array(self.dataframe["Race"])
+        genders = np.array(self.dataframe["Gender"])
+        ages = np.array(self.dataframe["Age"])
+        self.attr_counts = np.zeros((3,3,5))
+        for r in range(3):
+            for g in range(3):
+                for a in range(5):
+                    self.attr_counts[r,g,a] = np.sum(((races == r) & (genders == g) & (ages == a)))
+
+    def __len__(self):
+        return len(self.dataframe)
+    
+    def __getitem__(self, idx):
+        image_path = self.dataframe.loc[idx, "Path"]
+        image = Image.open(image_path).convert("RGB")
+        image = self.transform(image)
+        label = self.dataframe.loc[idx, "Emotion"]
+        label = one_hot_encode(label, self.n_labels)
+        filename = self.dataframe.loc[idx, "Name"]
+        attrs = np.array([self.dataframe.loc[idx, "Race"], self.dataframe.loc[idx, "Gender"], self.dataframe.loc[idx, "Age"]])
+        return image, label, filename, attrs
+    
+    def label_distribution(self):
+        return self.label_dist
+    
+    def attr_distribution(self):
+        return self.attr_counts
+    
 class RAFDataset(Dataset):
     def __init__(self, csv_file, n_labels, img_size=224, transform=None, equalized_by="none", equalized_how="none"):
         self.dataframe = pd.read_csv(csv_file)
