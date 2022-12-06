@@ -137,6 +137,29 @@ def load_model(model_path, model_args):
         return model
     else:
         raise NotImplementedError()
+    
+def get_aware_model(model_args):
+    """
+    Return a model based on model_args.
+    Required keys:
+        - model_type (must be ResNet18)
+        - pretrained
+        - n_labels
+        - frozen
+    """
+    if model_args['model_type'] == 'ResNet18':
+        return ResNet18Aware(model_args)
+    else: raise NotImplementedError()
+
+def load_aware_model(model_path, model_args):
+    """
+    Load a attribute-aware model from provided path.
+    """
+    if model_args['model_type'] == 'ResNet18':
+        model = ResNet18Aware(model_args)
+        model.load_state_dict(T.load(model_path))
+        return model
+    else: raise NotImplementedError()
 
 def ResNet18(model_args):
     """
@@ -158,6 +181,23 @@ def ResNet18(model_args):
             p.requires_grad = True
     
     return model
+
+class ResNet18Aware(T.nn.Module):
+    def __init__(self, model_args):
+        super().__init__()
+        self.resnet18 = ResNet18(model_args)
+        # remove the head of resnet18
+        self.resnet18.fc = T.nn.Sequential()
+        # linear layers
+        self.linear1 = T.nn.Linear(in_features=3, out_features=512, bias=True)
+        self.linear2 = T.nn.Linear(in_features=512, out_features=model_args['n_labels'], bias=True)
+    
+    def forward(self,x,attr):
+        x = self.resnet18(x)
+        attr = self.linear1(attr)
+        z = x + attr
+        out = self.linear2(z)
+        return out
 
 def ResNet50(model_args):
     """

@@ -1,7 +1,7 @@
 """
 Trains CNN model on RAF. Command line parameters.
 Uses original (i.e. all of the available) training data, test data for stopping.
-Simple weighting scheme based on desired attribute.
+Attribute aware approach.
 """
 
 
@@ -49,7 +49,6 @@ def main():
     parser.add_argument("--class-weights", default='y', type=str, help='class weights for loss function at train time (y/n)')
     parser.add_argument("--equalized-by", default='none', type=str, help='equalize training set by a protected attr (Race/Gender/Age/none)')
     parser.add_argument("--equalized-how", default='none', type=str, help='equalize training set by sampling attr (up/down/none)')
-    parser.add_argument("--over-weight", default='none', type=str, help='weight a particular subgroup [Race_Gender_Age] (none/0_0_0/...)')
     parser.add_argument("--print-batches", default='n', type=str, help='print batch updates')
     parser.add_argument("--scratch-dir", default='~/Documents/scratch', type=str, help='scratch dir for tmp files')
     parser.add_argument("--results-dir", default='./results/scratch', type=str, help='directory to save results')
@@ -107,15 +106,14 @@ def main():
         'class_weights': args.class_weights,
         'equalized_by': args.equalized_by,
         'equalized_how': args.equalized_how,
-        'over_weight': args.over_weight,
         'print_batches': args.print_batches,
         'scratch_dir':args.scratch_dir,
         'results_dir':args.results_dir,
-        'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_cw{}_eq{}_eqhow{}_ow{}_{}.txt'.format(
+        'results_file': '{}_lr{}_bs{}_opt{}_wd{}_sch_{}_pp{}_bp{}_tr{}_va{}_tf{}_do{}_cw{}_eq{}_eqhow{}_{}.txt'.format(
             args.architecture, args.initial_lr, args.batch_size, args.optimizer_family,
             args.weight_decay, args.scheduler_family, args.plateau_patience, args.break_patience,
             args.train_file, args.val_file, args.train_transform, args.dropout, args.class_weights, args.equalized_by,
-            args.equalized_how, args.over_weight, int(time.time()))[:-4] if args.results_file == '' else args.results_file
+            args.equalized_how, int(time.time()))[:-4] if args.results_file == '' else args.results_file
     }
 
     # Print fxn
@@ -131,7 +129,7 @@ def main():
     Model setup
     """
     # Setup
-    model = RAF.get_model(model_args)
+    model = RAF.get_aware_model(model_args)
 
     # Set dropout
     for m in model.modules():
@@ -146,7 +144,7 @@ def main():
         img_size=model_args["img_size"],
         transform=None,
         equalized_by=model_args['equalized_by'],
-        equalized_how=model_args['equalized_how'],
+        equalized_how=model_args['equalized_how']
     )
     val_data = RAF.RAFDataset(
         csv_file=os.path.join(dataset_root, "splits/test_files.csv"),
@@ -175,7 +173,7 @@ def main():
 
     # Loss function
     # multi-class, expects unnormalized logits
-    loss_fxn = nn.CrossEntropyLoss(reduce=False)
+    loss_fxn = nn.CrossEntropyLoss()
     if model_args['class_weights']:
         # weight each class
         # using inverse of # of samples in each class based on train dataset
@@ -184,20 +182,7 @@ def main():
         weight = torch.from_numpy(weight).to(device)
         # normalize
         weight = torch.nn.functional.softmax(weight)
-        loss_fxn = nn.CrossEntropyLoss(weight=weight, reduce=False)
-    
-    # weighting scheme
-    # weight 10x the requested subgroup
-    weighting_scheme = torch.ones(3,3,5, device=device, dtype=torch.float64)
-    if args.over_weight != "none":
-        attr1, attr2, attr3 = [int(x) for x in (args.over_weight).split("_")]
-        weighting_scheme[attr1,attr2,attr3] = 10
-    def attr_weights(attrs, device):
-        n = attrs.size()[0]
-        w = torch.ones(n, device=device, dtype=torch.float64)
-        for i in range(n):
-            w[i] = weighting_scheme[attrs[i,0],attrs[i,1],attrs[i,2]]
-        return w
+        loss_fxn = nn.CrossEntropyLoss(weight=weight)
 
     # Optimizer
     optimizer = None
@@ -278,14 +263,11 @@ def main():
 
             x = x.to(device)
             y = y.to(device)
+            attrs = attrs.to(device).to(torch.float)
 
-            yhat = model(x)
+            # attention aware model accepts image + attributes
+            yhat = model(x,attrs)
             loss = loss_fxn(yhat, y)
-
-            # weighting
-            batch_weights = attr_weights(attrs, device)
-            loss = torch.multiply(loss, batch_weights)
-            loss = torch.mean(loss)
 
             # normalize yhats before saving
             yhat = torch.nn.functional.softmax(yhat)
@@ -317,12 +299,11 @@ def main():
             with torch.no_grad():
                 x = x.to(device)
                 y = y.to(device)
+                attrs = attrs.to(device).to(torch.float)
 
-                yhat = model(x)
+                yhat = model(x,attrs)
                 loss = loss_fxn(yhat, y)
 
-                # no weighting at validation
-                loss = torch.mean(loss)
 
                 # normalize yhats before saving
                 yhat = torch.nn.functional.softmax(yhat)
@@ -419,7 +400,6 @@ def main():
         'Class Weights': model_args['class_weights'],
         'Equalized By': model_args['equalized_by'],
         'Equalized How': model_args['equalized_how'],
-        'Over Weight': model_args['over_weight'],
         'Epoch': epoch,
         'Loss Train': train_loss,
         'Loss Val': val_loss,
