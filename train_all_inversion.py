@@ -145,7 +145,7 @@ def main():
         equalized_by=model_args['equalized_by'],
         equalized_how=model_args['equalized_how']
     )
-    val_data = RAF.RAFDatasetAugmented(
+    val_data = RAF.RAFDataset(
         csv_file=os.path.join(dataset_root, "splits/test_files.csv"),
         n_labels=model_args['n_labels'],
         img_size=model_args["img_size"],
