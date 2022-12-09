@@ -27,7 +27,7 @@ class RAFDatasetAugmented(Dataset):
             if equalized_by not in ["Race", "Gender", "Age", "Emotion", "Combo"]:
                 raise NotImplementedError()
 
-            equalized_by_list = ["Gender", "Race", "Emotion"] if equalized_by == "Combo" else [equalized_by]
+            equalized_by_list = ["Gender", "Race", "Age"] if equalized_by == "Combo" else [equalized_by]
 
             self.dataframe['equalized'] = self.dataframe[equalized_by_list].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
             
