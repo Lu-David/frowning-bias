@@ -33,6 +33,8 @@ def download_raf():
     manual_url = "https://www.ugrad.cs.jhu.edu/~wwang136/manual.zip"
 
     rafdb = Path('./data/RAF')
+    if rafdb.exists():
+        return
     rafdb.mkdir(exist_ok=True, parents=True)
 
     download_and_unzip(aligned_test_url, rafdb / 'aligned_test.zip')
