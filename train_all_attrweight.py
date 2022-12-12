@@ -183,16 +183,6 @@ def main():
         # normalize
         weight = torch.nn.functional.softmax(weight)
         loss_fxn = nn.CrossEntropyLoss(weight=weight, reduce=False)
-    
-    # weighting scheme
-    def attr_weights(attrs, device):
-        n = attrs.size()[0]
-        w = torch.ones(n, device=device, dtype=torch.float64) * 0.05
-        # for now, just weight men 10x
-        for i in range(n):
-            if attrs[i,0] == 2:
-                w[i] = 4
-        return w
 
     # Optimizer
     optimizer = None
@@ -253,6 +243,8 @@ def main():
     # Model to device
     model = model.to(device)
 
+    race_weights = torch.FloatTensor([30, 0.01, 40])
+
     # Epoch loop
     for epoch in range(model_args['max_epochs']):
         time_start = time.time()
@@ -277,9 +269,11 @@ def main():
             yhat = model(x)
             loss = loss_fxn(yhat, y)
 
-            # attribute weighting & reduction
-            attr_weight = attr_weights(attrs, device)
-            loss = torch.dot(loss, attr_weight) / len(loss)
+            g = attrs[:, 1]
+            g = torch.nn.functional.one_hot(g, num_classes=len(race_weights)).float()
+            weights = torch.matmul(g, race_weights).to(device)
+            loss = loss * weights
+            loss = loss.mean()
 
             # normalize yhats before saving
             yhat = torch.nn.functional.softmax(yhat)
