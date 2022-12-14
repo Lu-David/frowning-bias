@@ -1,3 +1,5 @@
+**Final Report: ```./Final_Project_Submission.ipynb```**
+
 Setup:
 ```mamba env create -f environment.yml```
 ```conda env create -f environment.yml```
@@ -32,7 +34,6 @@ How to use this repository:
     - Affirmative Action: Run the ```train_all_affraction.py``` script. See ```./scripts/fairness2/train_affraction.sh``` and ```./scripts/fairness2/eval_affraction.sh```.
     - Note: for all prediction & evaluation, you will need to update model names with your own local names. Use the provided scripts as a template.
 - Statistical analysis & figures: generated externally using Google Sheets. See [here](https://docs.google.com/spreadsheets/d/1thmmfV8aJ9lB_GqUmet-8PoTkYaOso1ABum1zU6rCak/edit?usp=sharing).
-**Final Report: ```./Final_Project_Submission.ipynb```**
 
 Credits:
 1) https://github.com/zachmurphy1/transformer-radiographs
