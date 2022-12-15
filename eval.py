@@ -226,6 +226,7 @@ def eval(dict, yhats_col, yhats_arr, ys_col, ys_arr):
     return dict
 
 stats = {}
+stats["METHOD"] = args.predictions_file
 stats = eval(stats, yhats_c, yhats, ys_c, ys)
 
 """
@@ -233,3 +234,10 @@ Print to console.
 """
 for k in stats.keys():
     print(f"{k}\t{stats[k]}")
+
+"""
+Print to a csv file
+"""
+table = pd.read_csv("./stats/table.csv")
+table = table.append(stats, ignore_index=True)
+table.to_csv("./stats/table.csv", index=False)
