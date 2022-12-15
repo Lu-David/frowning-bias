@@ -5,6 +5,7 @@ Uses original (i.e. all of the available) training data, test data for stopping.
 
 
 # Imports
+import json
 import os
 from pathlib import Path
 
@@ -405,6 +406,10 @@ def main():
         'Accuracy Val': val_acc,
         'Total Time': best_log['timer']
     }
+
+    # Save train log to json
+    with open(os.path.join(model_args['results_dir'], model_args['results_file']+'_train_log.json'), 'w') as fp:
+        json.dump(train_log, fp)
 
     print(','.join([str(x) for x in results.values()]))
     printToResults(','.join([str(x) for x in results.values()])+'\n', os.path.join(model_args['results_dir'],'results.csv'))
